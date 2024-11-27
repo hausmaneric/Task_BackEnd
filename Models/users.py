@@ -17,7 +17,7 @@ class User(BaseClass):
         self.senha    = 0
         
 def getUsers():
-    SQL = dbmsqls()
+    SQL = dbsqlite()
     SQL.cur.execute(f'SELECT id, nome, login, senha FROM Users') 
     records = SQL.cur.fetchall()    
     _list = []
@@ -35,7 +35,7 @@ def getUsers():
     return _list 
 
 def getUser(id: int):
-    SQL = dbmsqls()
+    SQL = dbsqlite()
     SQL.cur.execute(f'SELECT id, nome, login, senha  FROM Users WHERE id = {id}') 
     records = SQL.cur.fetchall()     
     _list = []
@@ -57,7 +57,7 @@ def postUser(user: User):
     login       = user.login
     senha       = user.senha
     
-    SQL = dbmsqls()
+    SQL = dbsqlite()
     SQL.cur.execute('INSERT INTO Users (nome, login, senha) VALUES (?,?,?)', [nome, login, senha])
     
     SQL.con.commit()
@@ -70,7 +70,7 @@ def updateUser(id: int,user: User):
     login       = user.login
     senha       = user.senha
     
-    SQL = dbmsqls()
+    SQL = dbsqlite()
     SQL.cur.execute('UPDATE Users SET nome = ?, login = ?, senha = ? WHERE id = ?', (nome,login, senha, id))
     
     SQL.con.commit()
@@ -78,8 +78,19 @@ def updateUser(id: int,user: User):
     
     return user
 
+def updateUserPsw(user: User):
+    login       = user.login
+    senha       = user.senha
+    SQL = dbsqlite()
+    SQL.cur.execute('UPDATE Users SET senha = ? WHERE login = ?', (senha, login))
+    
+    SQL.con.commit()
+    SQL.con.close()
+    
+    return jsonify({"status": True, "message": "Senha alterada com sucesso!"}), 200
+
 def deleteUser(id: int):
-    SQL = dbmsqls()
+    SQL = dbsqlite()
     SQL.cur.execute('DELETE FROM Users WHERE id = ?', [id])
     
     SQL.con.commit()
