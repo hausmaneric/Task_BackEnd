@@ -6,7 +6,8 @@ from Models.email import checkcode, send_code
 from Models.users import *
 
 app = Flask(__name__)
-cors = CORS(app, resources={r"/api/*": {"origins": "*", "methods": "GET, POST, PUT, DELETE", "headers":"Origin, Content-Type, X-Auth-Token"}})
+# cors = CORS(app, resources={r"/api/*": {"origins": "*", "methods": "GET, POST, PUT, DELETE", "headers":"Origin, Content-Type, X-Auth-Token"}})
+cors = CORS(app, resources={r"/api/*": {"origins": "https://task-front-sand.vercel.app", "methods": "GET, POST, PUT, DELETE", "allow_headers": "Origin, Content-Type, X-Auth-Token, Authorization"}})
 app.config['JSON_AS_ASCII'] = False
 
 @app.route('/') 
