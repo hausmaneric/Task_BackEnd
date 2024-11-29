@@ -1,4 +1,4 @@
-from typing import Any, overload
+from typing import Any, List, Optional, overload
 from flask import jsonify
 from DataBase.db import *
 from Models.baseClass import *
@@ -129,6 +129,57 @@ def postContent(content: Content):
     
     SQL.con.commit()
     SQL.con.close()
+    
+    return content
+
+import calendar
+
+def postContentAll(content: Content, anos: Optional[List[int]] = None, meses: Optional[List[int]] = None, dias_semana: Optional[List[int]] = None):
+    """
+    Cria registros na tabela 'Contents' para datas específicas com base nos parâmetros fornecidos.
+    
+    Parâmetros:
+    - content: Objeto Content contendo os dados básicos do conteúdo.
+    - anos: Lista de anos para criar registros (ex.: [2024]).
+    - meses: Lista de meses para criar registros (ex.: [1, 2, 12] para janeiro, fevereiro e dezembro).
+    - dias_semana: Lista de dias da semana para criar registros (0 = segunda-feira, 6 = domingo).
+    """
+    
+    data_atual = datetime.now()
+    
+    anos = anos or [data_atual.year]
+    meses = meses or list(range(1, 13))
+    dias_semana = dias_semana or list(range(7))  
+    dias_semana = [int(dia) for dia in dias_semana]  
+    
+    datas_para_inserir = []
+    for ano in anos:
+        for mes in meses:
+            num_dias = calendar.monthrange(ano, mes)[1]  
+            for dia in range(1, num_dias + 1):
+                data = datetime(ano, mes, dia)
+                if data >= data_atual and data.weekday() in dias_semana:
+                    datas_para_inserir.append(data)
+    
+    
+    SQL = dbsqlite()  
+    for data in datas_para_inserir:
+        print(content.titulo)
+        SQL.cur.execute(
+            'INSERT INTO Contents (titulo, descricao, id_user, situacao, data, inicio, fim) VALUES (?,?,?,?,?,?,?)',
+            [
+                content.titulo,
+                content.descricao,
+                content.id_user,
+                content.situacao,
+                data.strftime('%Y-%m-%d'),
+                content.inicio,
+                content.fim
+            ]
+        )
+
+    SQL.con.commit()  
+    SQL.con.close()  
     
     return content
 

@@ -64,6 +64,24 @@ def contents(id=0):
     elif request.method == 'DELETE': 
         return deleteContent(id)
     
+@app.route('/api/contentcreate/', methods=['POST'])
+def create_content():
+    if request.method == 'POST':
+        if request.is_json:
+            data = request.get_json()
+            print(data)
+            content = Content()
+            content.__dict__.update(request.get_json())
+            anos        = data.get('anos')  
+            meses       = data.get('meses') 
+            dias_semana = data.get('dias_semana')  
+
+            created_content = postContentAll(content, anos=anos, meses=meses, dias_semana=dias_semana)
+            
+            return jsonify({"message": "Content created successfully", "content": created_content.__dict__}), 201
+        else:
+            return jsonify({"error": "Request must be JSON"}), 400
+    
 @app.route('/api/contents/<id_user>',     methods = ['GET'])
 @app.route('/api/content/',     methods = ['POST'])
 def content(id_user = 0):
@@ -118,4 +136,5 @@ def _verificationCode():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000, debug=True)
