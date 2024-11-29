@@ -2,19 +2,30 @@ from typing import Any, overload
 from flask import jsonify
 from DataBase.db import *
 from Models.baseClass import *
+import jwt
 
+SECRET_KEY = 'sua_chave_secreta_aqui'
+def gerar_token(login, name):
+    payload = {
+        'login': login,
+        'name': name,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=12)  # Expira em 12 horas
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 class User(BaseClass):
     id      = 0
     nome    = ''
     login   = ''
     senha   = ''
+    token   = ''
     
     def __init__(self, *args: Any, **kwds: Any) -> Any:        
         super().__init__(*args, **kwds)  
         self.id       = 0
         self.nome     = ''
-        self.login    = 0
-        self.senha    = 0
+        self.login    = ''
+        self.senha    = ''
+        self.senha    = ''
         
 def getUsers():
     SQL = dbsqlite()
@@ -63,6 +74,7 @@ def postUser(user: User):
     SQL.con.commit()
     SQL.con.close()
     
+    user.token = gerar_token(login, nome)
     return user
 
 def updateUser(id: int,user: User):

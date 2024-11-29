@@ -18,6 +18,26 @@ def main():
 def favicon():
     return "", 200
 
+def verificar_token():
+    token = None
+
+    if 'Authorization' in request.headers:
+        token = request.headers['Authorization'].split(" ")[1] 
+
+    if not token:
+        return False
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        request.login   = payload['login']
+        request.name    = payload['nome']
+    except jwt.ExpiredSignatureError:
+        return False  
+    except jwt.InvalidTokenError:
+        return False  
+
+    return True
+
 #region Users 
 @app.route('/api/users/',     methods = ['GET', 'POST'])
 @app.route('/api/users/<id>', methods = ['GET', 'PUT', 'DELETE'])
@@ -25,9 +45,11 @@ def users(id=0):
     users  = User()
     if request.method == 'GET':
         if id != 0:
-            return getUser(id)
+            if verificar_token():
+                return getUser(id)
         else:
-            return getUsers()
+            if verificar_token():
+                return getUsers()
     elif request.method == 'POST': 
         if request.is_json:
             users.__dict__.update(request.get_json())          
@@ -35,7 +57,8 @@ def users(id=0):
     elif request.method == 'PUT': 
         if request.is_json:
             users.__dict__.update(request.get_json()) 
-            return updateUser(id, users).__dict__   
+            if verificar_token():
+                return updateUser(id, users).__dict__   
     elif request.method == 'DELETE': 
         return deleteUser(id)
     
@@ -52,52 +75,56 @@ def userspsw():
 @app.route('/api/content/<id>', methods = ['GET', 'PUT', 'DELETE'])
 def contents(id=0):
     contents  = Content()
-    if request.method == 'GET':
-            return getContent(id)
-    elif request.method == 'POST': 
-        if request.is_json:
-            contents.__dict__.update(request.get_json())          
-            return postContent(contents).__dict__ 
-    elif request.method == 'PUT': 
-        if request.is_json:
-            contents.__dict__.update(request.get_json()) 
-            return updateContent(id, contents).__dict__   
-    elif request.method == 'DELETE': 
-        return deleteContent(id)
+    if verificar_token():
+        if request.method == 'GET':
+                return getContent(id)
+        elif request.method == 'POST': 
+            if request.is_json:
+                contents.__dict__.update(request.get_json())          
+                return postContent(contents).__dict__ 
+        elif request.method == 'PUT': 
+            if request.is_json:
+                contents.__dict__.update(request.get_json()) 
+                return updateContent(id, contents).__dict__   
+        elif request.method == 'DELETE': 
+            return deleteContent(id)
     
 @app.route('/api/contentcreate/', methods=['POST'])
 def create_content():
-    if request.method == 'POST':
-        if request.is_json:
-            data = request.get_json()
-            print(data)
-            content = Content()
-            content.__dict__.update(request.get_json())
-            anos        = data.get('anos')  
-            meses       = data.get('meses') 
-            dias_semana = data.get('dias_semana')  
+    if verificar_token():
+        if request.method == 'POST':
+            if request.is_json:
+                data = request.get_json()
+                print(data)
+                content = Content()
+                content.__dict__.update(request.get_json())
+                anos        = data.get('anos')  
+                meses       = data.get('meses') 
+                dias_semana = data.get('dias_semana')  
 
-            created_content = postContentAll(content, anos=anos, meses=meses, dias_semana=dias_semana)
-            
-            return jsonify({"message": "Content created successfully", "content": created_content.__dict__}), 201
-        else:
-            return jsonify({"error": "Request must be JSON"}), 400
+                created_content = postContentAll(content, anos=anos, meses=meses, dias_semana=dias_semana)
+                
+                return jsonify({"message": "Content created successfully", "content": created_content.__dict__}), 201
+            else:
+                return jsonify({"error": "Request must be JSON"}), 400
     
 @app.route('/api/contents/<id_user>',     methods = ['GET'])
 @app.route('/api/content/',     methods = ['POST'])
 def content(id_user = 0):
-    contents  = Content()
-    if request.method == 'GET':
-            return getAllContents(id_user)
-    elif request.method == 'POST': 
-        if request.is_json:
-            contents.__dict__.update(request.get_json())          
-            return postContent(contents).__dict__ 
+    if verificar_token():
+        contents  = Content()
+        if request.method == 'GET':
+                return getAllContents(id_user)
+        elif request.method == 'POST': 
+            if request.is_json:
+                contents.__dict__.update(request.get_json())          
+                return postContent(contents).__dict__ 
         
 @app.route('/api/cts/<id_user>/<data>', methods = ['GET'])
 def cts(id_user = 0, data = ''):
-    if request.method == 'GET':
-      return getContents(id_user, data)  
+    if verificar_token():
+        if request.method == 'GET':
+            return getContents(id_user, data)  
 #endregion
 
 @app.route('/api/sendcode', methods=['GET'])
